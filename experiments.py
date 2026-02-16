@@ -1,10 +1,16 @@
 import numpy as np
+
+# Check Numpy Version Compatibility
+if int(np.__version__.split('.')[0]) >= 2:
+    raise ImportError(f"Numpy version {np.__version__} is installed, but this environment requires numpy<2. "
+                      "Please run: conda install \"numpy<2\"")
+
 import logging
 import mlflow
 import os
 from sklearn.model_selection import StratifiedKFold
-from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME, ARTIFACT_PATH
-from src.data_prep import generate_mock_metadata, prepare_data_for_fold
+from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME, ARTIFACT_PATH, DATAFOLDER
+from src.data_prep import generate_mock_metadata, prepare_data_for_fold, load_metadata
 from src.training import train_and_evaluate
 
 from mlflow.tracking import MlflowClient
@@ -26,11 +32,37 @@ logger = logging.getLogger(__name__)
 # --- Main Execution ---
 
 if __name__ == "__main__":
-    # 1. Setup Data
-    df_meta = generate_mock_metadata(n_samples=150*4)
+    # 1. Setup Data - LOAD REAL DATA
+    try:
+        df_meta = load_metadata(DATAFOLDER)
+    except Exception as e:
+        logger.error(f"Failed to load data from {DATAFOLDER}: {e}")
+        # Fallback for debugging if needed, or exit
+        raise e
+        
+    # 2. Stratified K-Fold Configuration (Split by FILE ID)
     skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=42)
+    unique_files = df_meta[['file_id', 'label']].drop_duplicates()
     
-    # 2. Define Experiments
+    logger.info(f"Unique Files for Splitting: {len(unique_files)}")
+    
+    # Pre-calculate fold indices mapped to the full dataframe
+    # This ensures we don't leak data: splitting happens at file level
+    fold_indices = []
+    
+    for fold_idx, (train_file_idx, val_file_idx) in enumerate(skf.split(unique_files['file_id'], unique_files['label'])):
+        # Get File IDs for this fold
+        train_files = unique_files.iloc[train_file_idx]['file_id']
+        val_files = unique_files.iloc[val_file_idx]['file_id']
+        
+        # Map back to full dataframe indices (which includes segments)
+        t_idx = df_meta.index[df_meta['file_id'].isin(train_files)].tolist()
+        v_idx = df_meta.index[df_meta['file_id'].isin(val_files)].tolist()
+        
+        fold_indices.append((t_idx, v_idx))
+        logger.info(f"Fold {fold_idx+1}: Train Files={len(train_files)}, Val Files={len(val_files)} | Train Segments={len(t_idx)}, Val Segments={len(v_idx)}")
+
+    # 3. Define Experiments
     experiments = [
         "Baseline_LogMel",
         "Proposed_1_Denoised_Stationary_LogMel",
@@ -49,13 +81,11 @@ if __name__ == "__main__":
         
         # Start MLflow Parent Run
         with mlflow.start_run(run_name=exp_name):
-            mlflow.log_param("description", "4-Second Audio Classification")
+            mlflow.log_param("description", f"4-Second Audio Classification ({N_FOLDS}-Fold CV)")
             
-            # Loop through Folds (Stratified by File ID)
-            fold_iterator = skf.split(df_meta['file_id'], df_meta['label'])
             fold_results = []
             
-            for fold, (train_idx, val_idx) in enumerate(fold_iterator):
+            for fold, (train_idx, val_idx) in enumerate(fold_indices):
                 logger.info(f"--- Fold {fold+1}/{N_FOLDS} ---")
                 
                 # Prepare Data (Expensive step: Load -> Segment -> Feature)

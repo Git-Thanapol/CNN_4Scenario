@@ -1,3 +1,5 @@
+import glob
+import os
 import pandas as pd
 import numpy as np
 import logging
@@ -6,12 +8,62 @@ from .audio_processing import load_audio, denoise_audio_stationary, denoise_audi
 
 logger = logging.getLogger(__name__)
 
-def generate_mock_metadata(n_samples: int = 600) -> pd.DataFrame:
-    """Generates mock metadata ensuring we split by FILE ID."""
-    ids = [f"file_{i:04d}" for i in range(n_samples)]
-    labels = np.random.randint(0, 4, size=n_samples)
-    paths = [f"/tmp/mock_audio/{id}.wav" for id in ids] # Placeholder paths
-    return pd.DataFrame({'file_id': ids, 'label': labels, 'path': paths})
+def load_metadata(folder_path: str) -> pd.DataFrame:
+    """
+    Loads metadata from real WAV files in the specified folder.
+    Expected pattern: Case_PWM_Iteration.wav matches one of the classes.
+    """
+    folder_path = os.path.expanduser(folder_path)
+    wav_files = glob.glob(os.path.join(folder_path, "*.wav"))
+    
+    data = []
+    for file_path in wav_files:
+        filename = os.path.basename(file_path)
+        name_no_ext = os.path.splitext(filename)[0]
+        parts = name_no_ext.split('_')
+        
+        # Heuristic parsing based on "Case_PWM_Iteration"
+        # Example: Healthy_1300_1.wav -> case=Healthy, pwm=1300, iter=1
+        if len(parts) >= 3:
+            raw_case = parts[0].upper()
+            pwm = parts[1]
+            iteration = parts[2]
+            
+            # Map IMBALANCE -> UNBALANCE
+            if raw_case == 'IMBALANCE':
+                label = 'UNBALANCE'
+            elif raw_case == 'HEALTHY':
+                label = 'HEALTHY'
+            elif raw_case == 'BARNACLE':
+                label = 'BARNACLE'
+            elif raw_case == 'SEAWEED':
+                label = 'SEAWEED'
+            else:
+                logger.warning(f"Unknown label in file: {filename}. Skipping.")
+                continue
+                
+            data.append({
+                "file_id": name_no_ext,
+                "file_path": file_path,
+                "label": label,
+                "pwm": pwm,
+                "iteration": iteration
+            })
+        else:
+            logger.warning(f"Skipping malformed filename: {filename}")
+
+    if not data:
+        raise ValueError(f"No valid wav files found in {folder_path} matching pattern Case_PWM_Iter")
+
+    df = pd.DataFrame(data)
+    logger.info(f"Loaded {len(df)} files from {folder_path}")
+    logger.info(f"Class distribution:\n{df['label'].value_counts()}")
+    return df
+
+def generate_mock_metadata(n_samples=100) -> pd.DataFrame:
+    """Non-functional mock generator kept for compatibility if needed."""
+    # ... existing code ...
+    pass 
 
 def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type):
     """

@@ -15,4 +15,4 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 TRACKING_URI = "http://localhost:5000" # Prod
 EXPERIMENT_NAME = "Audio_Classification_Research_Test"
 ARTIFACT_PATH = "mlartifacts"
-
+DATAFOLDER = "~/notebooks/prop_fault_detection/dataset_output/train_data"
