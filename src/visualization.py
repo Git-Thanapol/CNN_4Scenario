@@ -41,24 +41,43 @@ def plot_tsne(features, labels, classes, save_dir=None):
     plt.close()
     return filename
 
-def plot_training_curves(history: pd.DataFrame, save_dir=None):
-    plt.figure(figsize=(12, 5))
+def plot_metrics_separately(history: pd.DataFrame, save_dir=None):
+    """
+    Plots Loss, Accuracy, Precision, Recall, and F1 separately.
+    Returns a list of generated file paths.
+    """
+    metrics = [
+        ('train_loss', 'val_loss', 'Loss per Epoch', 'loss_curve.png'),
+        ('train_acc', 'val_acc', 'Accuracy per Epoch', 'accuracy_curve.png'),
+        (None, 'val_precision', 'Validation Precision per Epoch', 'precision_curve.png'),
+        (None, 'val_recall', 'Validation Recall per Epoch', 'recall_curve.png'),
+        (None, 'val_f1', 'Validation F1 Score per Epoch', 'f1_curve.png')
+    ]
     
-    plt.subplot(1, 2, 1)
-    plt.plot(history['epoch'], history['train_loss'], label='Train Loss')
-    plt.plot(history['epoch'], history['val_loss'], label='Val Loss')
-    plt.title('Loss per Epoch')
-    plt.legend()
+    generated_files = []
     
-    plt.subplot(1, 2, 2)
-    plt.plot(history['epoch'], history['train_acc'], label='Train Acc')
-    plt.plot(history['epoch'], history['val_acc'], label='Val Acc')
-    plt.title('Accuracy per Epoch')
-    plt.legend()
-    
-    filename = "training_curves.png"
-    if save_dir:
-        filename = os.path.join(save_dir, filename)
-    plt.savefig(filename)
-    plt.close()
-    return filename
+    for train_metric, val_metric, title, filename in metrics:
+        plt.figure(figsize=(10, 6))
+        
+        if train_metric and train_metric in history.columns:
+            plt.plot(history['epoch'], history[train_metric], label=f'Train {train_metric.split("_")[1].capitalize()}')
+            
+        if val_metric and val_metric in history.columns:
+            plt.plot(history['epoch'], history[val_metric], label=f'Val {val_metric.split("_")[1].capitalize()}')
+            
+        plt.title(title)
+        plt.xlabel('Epoch')
+        plt.ylabel('Score')
+        plt.legend()
+        plt.grid(True)
+        
+        if save_dir:
+            filepath = os.path.join(save_dir, filename)
+        else:
+            filepath = filename
+            
+        plt.savefig(filepath)
+        plt.close()
+        generated_files.append(filepath)
+        
+    return generated_files

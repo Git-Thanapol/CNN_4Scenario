@@ -16,3 +16,4 @@ TRACKING_URI = "http://localhost:5000" # Prod
 EXPERIMENT_NAME = "Audio_Classification_Research_Test"
 ARTIFACT_PATH = "mlartifacts"
 DATAFOLDER = "~/notebooks/propeller_audio_records/raw_train_data"
+LOW_PASS_CUTOFF = 900 # Hz

@@ -2,14 +2,30 @@ import numpy as np
 import librosa
 from typing import List
 import noisereduce as nr
+import scipy.signal
+from scipy.signal import butter, lfilter
 from .config import SAMPLE_RATE, DURATION, WINDOW_SIZE, STRIDE, N_MELS, HOP_LENGTH
 
+def apply_low_pass_filter(y: np.ndarray, sr: int, cutoff: int) -> np.ndarray:
+    """Applies a low-pass ButterWorth filter."""
+    if cutoff >= sr / 2:
+        return y # Nyquist limit check
+        
+    order = 6
+    nyquist = 0.5 * sr
+    normal_cutoff = cutoff / nyquist
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    y_filtered = lfilter(b, a, y)
+    return y_filtered
+
 def load_audio(file_path: str, sr: int = SAMPLE_RATE) -> np.ndarray:
-    """Loads audio file. (Mock implementation returns random noise)."""
-    # Real implementation: y, _ = librosa.load(file_path, sr=sr)
-    # For demo, returning random noise of length ~4s (+- variation)
-    length = int(sr * (DURATION + np.random.uniform(-0.5, 0.5)))
-    return np.random.randn(length).astype(np.float32)
+    """Loads audio file using librosa."""
+    try:
+        y, _ = librosa.load(file_path, sr=sr)
+        return y
+    except Exception as e:
+        print(f"Error loading {file_path}: {e}")
+        return np.array([])
 
 def denoise_audio_nonstationary(y: np.ndarray, sr: int) -> np.ndarray:
     """Applies noise reduction (Placeholder for noisereduce library)."""
