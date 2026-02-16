@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import logging
 from .config import SAMPLE_RATE, WINDOW_SIZE, STRIDE
-from .audio_processing import load_audio, denoise_audio, segment_audio, compute_spectrogram
+from .audio_processing import load_audio, denoise_audio_stationary, denoise_audio_nonstationary , segment_audio, compute_spectrogram
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
+import numpy as np
 import logging
 import mlflow
-import numpy as np
 import os
 from sklearn.model_selection import StratifiedKFold
 from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME, ARTIFACT_PATH
