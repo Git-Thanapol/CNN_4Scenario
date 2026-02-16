@@ -25,7 +25,7 @@ def load_metadata(folder_path: str) -> pd.DataFrame:
         # Heuristic parsing based on "Case_PWM_Iteration"
         # Example: Healthy_1300_1.wav -> case=Healthy, pwm=1300, iter=1
         if len(parts) >= 3:
-            raw_case = parts[0].upper()
+            raw_case = parts[0].lower()
             pwm = parts[1]
             iteration = parts[2]
             
