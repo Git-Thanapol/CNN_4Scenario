@@ -15,6 +15,8 @@ from .dataset import AudioDataset
 from .models import SimpleCNN
 from .visualization import plot_confusion_matrix, plot_tsne, plot_training_curves
 
+logger = logging.getLogger(__name__)
+
 class EarlyStopping:
     """
     Early stops the training if validation loss doesn't improve after a given patience.
