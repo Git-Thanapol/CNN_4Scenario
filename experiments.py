@@ -1,15 +1,26 @@
 import logging
 import mlflow
 import numpy as np
+import os
 from sklearn.model_selection import StratifiedKFold
-from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME
+from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME, ARTIFACT_PATH
 from src.data_prep import generate_mock_metadata, prepare_data_for_fold
 from src.training import train_and_evaluate
 
 from mlflow.tracking import MlflowClient
 
 # Setup Logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+os.makedirs(ARTIFACT_PATH, exist_ok=True)
+log_file_path = os.path.join(ARTIFACT_PATH, "experiment.log")
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file_path),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
 
 # --- Main Execution ---
@@ -22,9 +33,10 @@ if __name__ == "__main__":
     # 2. Define Experiments
     experiments = [
         "Baseline_LogMel",
-        "Proposed_1_Denoised_LogMel",
-        "Proposed_2_Raw_PCEN",
-        # "Proposed_3_Mix" # Optional: Add logic for mixing if needed
+        "Proposed_1_Denoised_Stationary_LogMel",
+        "Proposed_2_Denoised_Nonstationary_LogMel",
+        "Proposed_3_Raw_PCEN",
+        # "Proposed_4_Mix" # Optional: Add logic for mixing if needed
     ]
     
     mlflow.set_tracking_uri(TRACKING_URI)
@@ -60,5 +72,8 @@ if __name__ == "__main__":
             logger.info(f"Best Fold for {exp_name}: Fold {best_fold['fold']} (F1: {best_fold['f1']:.4f})")
             
             client.set_tag(best_fold['run_id'], "best_fold", "True")
+            
+            # Log the log file as artifact
+            mlflow.log_artifact(log_file_path)
                 
     logger.info("All Experiments Completed.")

@@ -1,6 +1,7 @@
 import numpy as np
 import librosa
 from typing import List
+import noisereduce as nr
 from .config import SAMPLE_RATE, DURATION, WINDOW_SIZE, STRIDE, N_MELS, HOP_LENGTH
 
 def load_audio(file_path: str, sr: int = SAMPLE_RATE) -> np.ndarray:
@@ -10,11 +11,13 @@ def load_audio(file_path: str, sr: int = SAMPLE_RATE) -> np.ndarray:
     length = int(sr * (DURATION + np.random.uniform(-0.5, 0.5)))
     return np.random.randn(length).astype(np.float32)
 
-def denoise_audio(y: np.ndarray, sr: int) -> np.ndarray:
+def denoise_audio_nonstationary(y: np.ndarray, sr: int) -> np.ndarray:
     """Applies noise reduction (Placeholder for noisereduce library)."""
-    # import noisereduce as nr
-    # return nr.reduce_noise(y=y, sr=sr)
-    return y * 0.9  # Mock effect
+    return nr.reduce_noise(y=y, sr=sr , stationary=False)
+
+def denoise_audio_stationary(y: np.ndarray, sr: int) -> np.ndarray:
+    """Applies noise reduction (Placeholder for noisereduce library)."""
+    return nr.reduce_noise(y=y, sr=sr, stationary=True)
 
 def segment_audio(y: np.ndarray, sr: int, window_size: float, stride: float) -> List[np.ndarray]:
     """
