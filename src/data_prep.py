@@ -30,14 +30,14 @@ def load_metadata(folder_path: str) -> pd.DataFrame:
             iteration = parts[2]
             
             # Map IMBALANCE -> UNBALANCE
-            if raw_case == 'IMBALANCE':
-                label = 'UNBALANCE'
-            elif raw_case == 'HEALTHY':
-                label = 'HEALTHY'
-            elif raw_case == 'BARNACLE':
-                label = 'BARNACLE'
-            elif raw_case == 'SEAWEED':
-                label = 'SEAWEED'
+            if raw_case == 'imbalance':
+                label = 'imbalance'
+            elif raw_case == 'healthy':
+                label = 'healthy'
+            elif raw_case == 'fouling':
+                label = 'fouling'
+            elif raw_case == 'seaweed':
+                label = 'seaweed'
             else:
                 logger.warning(f"Unknown label in file: {filename}. Skipping.")
                 continue
@@ -76,8 +76,8 @@ def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type):
         
         for file_id, label in zip(subset_ids, subset_labels):
             # 1. Load Audio
-            path = df_meta[df_meta['file_id'] == file_id]['path'].values[0]
-            y = load_audio(path)
+            file_path = df_meta[df_meta['file_id'] == file_id]['file_path'].values[0]
+            y = load_audio(file_path)
             
             # 2. Denoising (Based on Experiment)
             if experiment_type in ['Proposed_1_Denoised_Stationary_LogMel', 'Proposed_4_Mix']:
