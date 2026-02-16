@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import logging
-from .config import SAMPLE_RATE, WINDOW_SIZE, STRIDE
+from .config import SAMPLE_RATE, WINDOW_SIZE, STRIDE, CLASSES
 from .audio_processing import load_audio, denoise_audio_stationary, denoise_audio_nonstationary , segment_audio, compute_spectrogram
 
 logger = logging.getLogger(__name__)
@@ -96,7 +96,7 @@ def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type):
             for seg in segments:
                 spec = compute_spectrogram(seg, SAMPLE_RATE, method=feature_method)
                 X_list.append(spec)
-                y_list.append(label) # All segments inherit the file's label
+                y_list.append(CLASSES.index(label)) # All segments inherit the file's label as int index
                 
         return np.array(X_list), np.array(y_list)
 
