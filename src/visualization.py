@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -5,7 +6,7 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix
 from sklearn.manifold import TSNE
 
-def plot_confusion_matrix(y_true, y_pred, classes):
+def plot_confusion_matrix(y_true, y_pred, classes, save_dir=None):
     cm = confusion_matrix(y_true, y_pred)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=classes, yticklabels=classes)
@@ -13,11 +14,13 @@ def plot_confusion_matrix(y_true, y_pred, classes):
     plt.ylabel('True')
     plt.title('Confusion Matrix')
     filename = "confusion_matrix.png"
+    if save_dir:
+        filename = os.path.join(save_dir, filename)
     plt.savefig(filename)
     plt.close()
     return filename
 
-def plot_tsne(features, labels, classes):
+def plot_tsne(features, labels, classes, save_dir=None):
     """Plots t-SNE of the extracted features."""
     if len(features) > 1000: # Subsample for speed if needed
         idx = np.random.choice(len(features), 1000, replace=False)
@@ -32,11 +35,13 @@ def plot_tsne(features, labels, classes):
     plt.legend(handles=scatter.legend_elements()[0], labels=classes)
     plt.title('t-SNE Visualization of CNN Features')
     filename = "tsne_plot.png"
+    if save_dir:
+        filename = os.path.join(save_dir, filename)
     plt.savefig(filename)
     plt.close()
     return filename
 
-def plot_training_curves(history: pd.DataFrame):
+def plot_training_curves(history: pd.DataFrame, save_dir=None):
     plt.figure(figsize=(12, 5))
     
     plt.subplot(1, 2, 1)
@@ -52,6 +57,8 @@ def plot_training_curves(history: pd.DataFrame):
     plt.legend()
     
     filename = "training_curves.png"
+    if save_dir:
+        filename = os.path.join(save_dir, filename)
     plt.savefig(filename)
     plt.close()
     return filename

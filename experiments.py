@@ -1,7 +1,8 @@
 import logging
 import mlflow
+import numpy as np
 from sklearn.model_selection import StratifiedKFold
-from src.config import N_FOLDS
+from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME
 from src.data_prep import generate_mock_metadata, prepare_data_for_fold
 from src.training import train_and_evaluate
 
@@ -24,7 +25,8 @@ if __name__ == "__main__":
         # "Proposed_3_Mix" # Optional: Add logic for mixing if needed
     ]
     
-    mlflow.set_experiment("Audio_Classification_Research")
+    mlflow.set_tracking_uri(TRACKING_URI)
+    mlflow.set_experiment(EXPERIMENT_NAME)
 
     for exp_name in experiments:
         logger.info(f"Starting Experiment: {exp_name}")

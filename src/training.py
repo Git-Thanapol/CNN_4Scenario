@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,7 +10,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE
+from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH
 from .dataset import AudioDataset
 from .models import SimpleCNN
 from .visualization import plot_confusion_matrix, plot_tsne, plot_training_curves
@@ -111,18 +112,19 @@ def train_and_evaluate(experiment_name: str,
         # --- End of Training: Final Evaluation ---
         
         # Save History to CSV
+        csv_path = os.path.join(ARTIFACT_PATH, "training_log.csv")
         hist_df = pd.DataFrame(history)
-        hist_df.to_csv("training_log.csv", index=False)
-        mlflow.log_artifact("training_log.csv")
+        hist_df.to_csv(csv_path, index=False)
+        mlflow.log_artifact(csv_path)
         
         # Generate & Log Plots
-        curve_path = plot_training_curves(hist_df)
+        curve_path = plot_training_curves(hist_df, save_dir=ARTIFACT_PATH)
         mlflow.log_artifact(curve_path)
         
-        cm_path = plot_confusion_matrix(all_labels, all_preds, CLASSES)
+        cm_path = plot_confusion_matrix(all_labels, all_preds, CLASSES, save_dir=ARTIFACT_PATH)
         mlflow.log_artifact(cm_path)
         
-        tsne_path = plot_tsne(np.array(all_features), np.array(all_labels), CLASSES)
+        tsne_path = plot_tsne(np.array(all_features), np.array(all_labels), CLASSES, save_dir=ARTIFACT_PATH)
         mlflow.log_artifact(tsne_path)
         
         # Log Final Summary Metrics
