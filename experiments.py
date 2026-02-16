@@ -6,6 +6,8 @@ from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME
 from src.data_prep import generate_mock_metadata, prepare_data_for_fold
 from src.training import train_and_evaluate
 
+from mlflow.tracking import MlflowClient
+
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -27,6 +29,8 @@ if __name__ == "__main__":
     
     mlflow.set_tracking_uri(TRACKING_URI)
     mlflow.set_experiment(EXPERIMENT_NAME)
+    
+    client = MlflowClient()
 
     for exp_name in experiments:
         logger.info(f"Starting Experiment: {exp_name}")
@@ -37,6 +41,7 @@ if __name__ == "__main__":
             
             # Loop through Folds (Stratified by File ID)
             fold_iterator = skf.split(df_meta['file_id'], df_meta['label'])
+            fold_results = []
             
             for fold, (train_idx, val_idx) in enumerate(fold_iterator):
                 logger.info(f"--- Fold {fold+1}/{N_FOLDS} ---")
@@ -47,6 +52,13 @@ if __name__ == "__main__":
                 )
                 
                 # Train & Log
-                train_and_evaluate(exp_name, X_train, y_train, X_val, y_val, fold)
+                run_id, f1_score = train_and_evaluate(exp_name, X_train, y_train, X_val, y_val, fold)
+                fold_results.append({'run_id': run_id, 'f1': f1_score, 'fold': fold+1})
+                
+            # Find and Tag Best Fold
+            best_fold = max(fold_results, key=lambda x: x['f1'])
+            logger.info(f"Best Fold for {exp_name}: Fold {best_fold['fold']} (F1: {best_fold['f1']:.4f})")
+            
+            client.set_tag(best_fold['run_id'], "best_fold", "True")
                 
     logger.info("All Experiments Completed.")

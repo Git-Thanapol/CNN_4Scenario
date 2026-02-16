@@ -10,12 +10,39 @@ import numpy as np
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH
+from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE
 from .dataset import AudioDataset
 from .models import SimpleCNN
 from .visualization import plot_confusion_matrix, plot_tsne, plot_training_curves
 
-logger = logging.getLogger(__name__)
+class EarlyStopping:
+    """
+    Early stops the training if validation loss doesn't improve after a given patience.
+    """
+    def __init__(self, patience=5, min_delta=0, path='checkpoint.pt'):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.path = path
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
+
+    def __call__(self, val_loss, model):
+        if self.best_loss is None:
+            self.best_loss = val_loss
+            self.save_checkpoint(val_loss, model)
+        elif val_loss > self.best_loss - self.min_delta:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_loss = val_loss
+            self.save_checkpoint(val_loss, model)
+            self.counter = 0
+
+    def save_checkpoint(self, val_loss, model):
+        '''Saves model when validation loss decrease.'''
+        torch.save(model.state_dict(), self.path)
 
 def train_and_evaluate(experiment_name: str, 
                        X_train, y_train, X_val, y_val, 
@@ -33,6 +60,11 @@ def train_and_evaluate(experiment_name: str,
     
     history = []
     
+    # Early Stopping Setup
+    os.makedirs(ARTIFACT_PATH, exist_ok=True)
+    checkpoint_path = os.path.join(ARTIFACT_PATH, f"model_{experiment_name}_fold{fold_idx}.pt")
+    early_stopping = EarlyStopping(patience=PATIENCE, path=checkpoint_path)
+
     # Start MLflow Child Run (Fold Level)
     with mlflow.start_run(run_name=f"Fold_{fold_idx+1}", nested=True) as run:
         
@@ -42,7 +74,8 @@ def train_and_evaluate(experiment_name: str,
             "batch_size": BATCH_SIZE,
             "lr": 0.001,
             "optimizer": "Adam",
-            "model": "SimpleCNN"
+            "model": "SimpleCNN",
+            "patience": PATIENCE
         })
 
         # Training Loop
@@ -109,9 +142,26 @@ def train_and_evaluate(experiment_name: str,
             
             logger.info(f"Fold {fold_idx+1} | Epoch {epoch+1}/{EPOCHS} | Val Acc: {epoch_val_acc:.4f}")
 
+            # Call Early Stopping
+            early_stopping(epoch_val_loss, model)
+            
+            if early_stopping.early_stop:
+                logger.info(f"Early stopping triggered at epoch {epoch+1}")
+                break
+
+        # Load best model
+        model.load_state_dict(torch.load(checkpoint_path))
+        
+        # Log Model to MLflow
+        mlflow.pytorch.log_model(model, "model")
+        
+        # Get Run ID
+        run_id = run.info.run_id
+
         # --- End of Training: Final Evaluation ---
         
         # Save History to CSV
+        os.makedirs(ARTIFACT_PATH, exist_ok=True)
         csv_path = os.path.join(ARTIFACT_PATH, "training_log.csv")
         hist_df = pd.DataFrame(history)
         hist_df.to_csv(csv_path, index=False)
@@ -129,9 +179,9 @@ def train_and_evaluate(experiment_name: str,
         
         # Log Final Summary Metrics
         accuracy = accuracy_score(all_labels, all_preds)
-        precision = precision_score(all_labels, all_preds, average='macro')
-        recall = recall_score(all_labels, all_preds, average='macro')
-        f1 = f1_score(all_labels, all_preds, average='macro')
+        precision = precision_score(all_labels, all_preds, average='macro', zero_division=0)
+        recall = recall_score(all_labels, all_preds, average='macro', zero_division=0)
+        f1 = f1_score(all_labels, all_preds, average='macro', zero_division=0)
         
         mlflow.log_metrics({
             "final_accuracy": accuracy,
@@ -142,3 +192,5 @@ def train_and_evaluate(experiment_name: str,
         })
         
         logger.info(f"Fold {fold_idx+1} Completed. Final F1: {f1:.4f}")
+        
+        return run_id, f1
