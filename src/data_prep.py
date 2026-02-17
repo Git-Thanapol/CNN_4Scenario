@@ -3,8 +3,8 @@ import os
 import pandas as pd
 import numpy as np
 import logging
-from .config import SAMPLE_RATE, WINDOW_SIZE, STRIDE, CLASSES, LOW_PASS_CUTOFF
-from .audio_processing import load_audio, denoise_audio_stationary, denoise_audio_nonstationary , segment_audio, compute_spectrogram, apply_low_pass_filter
+from .config import SAMPLE_RATE, WINDOW_SIZE, STRIDE, CLASSES, LOW_PASS_CUTOFF, HIGH_PASS_CUTOFF
+from .audio_processing import load_audio, denoise_audio_stationary, denoise_audio_nonstationary , segment_audio, compute_spectrogram, apply_low_pass_filter, apply_band_pass_filter
 
 logger = logging.getLogger(__name__)
 
@@ -60,11 +60,6 @@ def load_metadata(folder_path: str) -> pd.DataFrame:
     logger.info(f"Class distribution:\n{df['label'].value_counts()}")
     return df
 
-def generate_mock_metadata(n_samples=100) -> pd.DataFrame:
-    """Non-functional mock generator kept for compatibility if needed."""
-    # ... existing code ...
-    pass 
-
 def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type):
     """
     Splits by FILE ID first, then processes audio -> segments -> features.
@@ -79,8 +74,8 @@ def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type):
             file_path = df_meta[df_meta['file_id'] == file_id]['file_path'].values[0]
             y = load_audio(file_path)
             
-            # 1.5 Apply Low Pass Filter (Global for all experiments)
-            y = apply_low_pass_filter(y, SAMPLE_RATE, LOW_PASS_CUTOFF)
+            # 1.5 Apply Band Pass Filter (Global for all experiments)
+            y = apply_band_pass_filter(y, SAMPLE_RATE, HIGH_PASS_CUTOFF, LOW_PASS_CUTOFF)
             
             # 2. Denoising (Based on Experiment)
             if experiment_type in ['Proposed_1_Denoised_Stationary_LogMel', 'Proposed_4_Mix']:

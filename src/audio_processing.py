@@ -6,6 +6,19 @@ import scipy.signal
 from scipy.signal import butter, lfilter
 from .config import SAMPLE_RATE, DURATION, WINDOW_SIZE, STRIDE, N_MELS, HOP_LENGTH
 
+def apply_band_pass_filter(y: np.ndarray, sr: int, low_cutoff: int, high_cutoff: int) -> np.ndarray:
+    """Applies a band-pass ButterWorth filter."""
+    if high_cutoff >= sr / 2:
+        high_cutoff = sr / 2 - 1 # Ensure within Nyquist limit
+        
+    order = 6
+    nyquist = 0.5 * sr
+    low = low_cutoff / nyquist
+    high = high_cutoff / nyquist
+    b, a = butter(order, [low, high], btype='band', analog=False)
+    y_filtered = lfilter(b, a, y)
+    return y_filtered
+
 def apply_low_pass_filter(y: np.ndarray, sr: int, cutoff: int) -> np.ndarray:
     """Applies a low-pass ButterWorth filter."""
     if cutoff >= sr / 2:

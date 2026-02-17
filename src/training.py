@@ -58,7 +58,7 @@ def train_and_evaluate(experiment_name: str,
     
     model = SimpleCNN(n_classes=len(CLASSES)).to(DEVICE)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
     
     history = []
     
