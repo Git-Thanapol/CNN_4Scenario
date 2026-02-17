@@ -12,7 +12,7 @@ import os
 from sklearn.model_selection import StratifiedKFold
 import src.config as config
 from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME, ARTIFACT_PATH, DATAFOLDER
-from src.data_prep import generate_mock_metadata, prepare_data_for_fold, load_metadata
+from src.data_prep import prepare_data_for_fold, load_metadata
 from src.training import train_and_evaluate
 
 from mlflow.tracking import MlflowClient
