@@ -105,7 +105,7 @@ if __name__ == "__main__":
                 
                 # Prepare Data (Expensive step: Load -> Segment -> Feature)
                 X_train, y_train, X_val, y_val = prepare_data_for_fold(
-                    df_meta, train_idx, val_idx, exp_name
+                    df_meta, train_idx, val_idx, exp_name, augment=True
                 )
                 
                 # Train & Log

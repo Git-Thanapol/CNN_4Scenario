@@ -10,10 +10,11 @@ import numpy as np
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE,LEARNING_RATE
+from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE, LEARNING_RATE, AUGMENT_SPECTROGRAM
 from .dataset import AudioDataset
 from .models import SimpleCNN
 from .visualization import plot_confusion_matrix, plot_tsne, plot_metrics_separately
+from .augmentation import SpectrogramAugmentor
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,30 @@ def train_and_evaluate(experiment_name: str,
                        fold_idx: int):
     
     # Dataset & Loader
-    train_dataset = AudioDataset(X_train, y_train)
-    val_dataset = AudioDataset(X_val, y_val)
+    train_transform = None
+    if AUGMENT_SPECTROGRAM:
+        spec_augmentor = SpectrogramAugmentor()
+        # Define transform wrapper
+        # Input to transform is tensor (C, H, W) or numpy array
+        # SpectrogramAugmentor expects numpy array (H, W) usually, let's check.
+        # AudioDataset passes features[idx] which is a Tensor (1, H, W).
+        # We need to adapt.
+        
+        def transform_fn(x_tensor):
+            # x_tensor is (1, n_mels, time)
+            # Convert to numpy for augmentation
+            x_np = x_tensor.squeeze(0).numpy()
+            
+            # Apply masking
+            masked_np = spec_augmentor.random_masking(x_np, freq_masks=1, time_masks=1)
+            
+            # Convert back to tensor and add channel dim
+            return torch.from_numpy(masked_np).unsqueeze(0)
+            
+        train_transform = transform_fn
+
+    train_dataset = AudioDataset(X_train, y_train, transform=train_transform)
+    val_dataset = AudioDataset(X_val, y_val) # No augmentation for validation
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     

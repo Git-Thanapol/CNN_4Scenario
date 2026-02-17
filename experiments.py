@@ -5,12 +5,14 @@ if int(np.__version__.split('.')[0]) >= 2:
     raise ImportError(f"Numpy version {np.__version__} is installed, but this environment requires numpy<2. "
                       "Please run: conda install \"numpy<2\"")
 
+import json
 import logging
 import mlflow
 import os
 from sklearn.model_selection import StratifiedKFold
+import src.config as config
 from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME, ARTIFACT_PATH, DATAFOLDER
-from src.data_prep import generate_mock_metadata, prepare_data_for_fold, load_metadata
+from src.data_prep import prepare_data_for_fold, load_metadata
 from src.training import train_and_evaluate
 
 from mlflow.tracking import MlflowClient
@@ -82,6 +84,19 @@ if __name__ == "__main__":
         # Start MLflow Parent Run
         with mlflow.start_run(run_name=exp_name):
             mlflow.log_param("description", f"4-Second Audio Classification ({N_FOLDS}-Fold CV)")
+            
+            # --- Log Configuration to JSON ---
+            config_dict = {k: v for k, v in vars(config).items() if k.isupper()}
+            # Handle non-serializable types if any (e.g. torch.device)
+            config_dict = {k: str(v) if not isinstance(v, (int, float, str, bool, list, dict, type(None))) else v for k, v in config_dict.items()}
+
+            config_json_path = os.path.join(ARTIFACT_PATH, "config.json")
+            with open(config_json_path, "w") as f:
+                json.dump(config_dict, f, indent=4)
+            
+            mlflow.log_artifact(config_json_path)
+            logger.info(f"Logged configuration to {config_json_path}")
+            # ---------------------------------
             
             fold_results = []
             
