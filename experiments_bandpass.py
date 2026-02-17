@@ -84,6 +84,7 @@ if __name__ == "__main__":
         # Start MLflow Parent Run
         with mlflow.start_run(run_name=exp_name):
             mlflow.log_param("description", f"4-Second Audio Classification ({N_FOLDS}-Fold CV)")
+            mlflow.log_param("experiment_name", exp_name)
             
             # --- Log Configuration to JSON ---
             config_dict = {k: v for k, v in vars(config).items() if k.isupper()}
