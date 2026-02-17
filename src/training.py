@@ -10,7 +10,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE
+from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE,LEARNING_RATE
 from .dataset import AudioDataset
 from .models import SimpleCNN
 from .visualization import plot_confusion_matrix, plot_tsne, plot_metrics_separately
@@ -58,7 +58,7 @@ def train_and_evaluate(experiment_name: str,
     
     model = SimpleCNN(n_classes=len(CLASSES)).to(DEVICE)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
     history = []
     
@@ -74,7 +74,7 @@ def train_and_evaluate(experiment_name: str,
         mlflow.log_params({
             "fold": fold_idx + 1,
             "batch_size": BATCH_SIZE,
-            "lr": 0.001,
+            "lr": LEARNING_RATE,
             "optimizer": "Adam",
             "model": "SimpleCNN",
             "patience": PATIENCE

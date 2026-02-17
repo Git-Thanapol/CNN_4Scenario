@@ -67,9 +67,9 @@ if __name__ == "__main__":
     # 3. Define Experiments
     experiments = [
         "Baseline_LogMel",
-        #"Proposed_1_Denoised_Stationary_LogMel",
-        #"Proposed_2_Denoised_Nonstationary_LogMel",
-        #"Proposed_3_Raw_PCEN",
+        "Proposed_1_Denoised_Stationary_LogMel",
+        "Proposed_2_Denoised_Nonstationary_LogMel",
+        "Proposed_3_Raw_PCEN",
         # "Proposed_4_Mix" # Optional: Add logic for mixing if needed
     ]
     
