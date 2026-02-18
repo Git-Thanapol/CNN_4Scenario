@@ -9,6 +9,7 @@ import json
 import logging
 import mlflow
 import os
+from datetime import datetime
 from sklearn.model_selection import StratifiedKFold
 import src.config as config
 from src.config import N_FOLDS, TRACKING_URI, EXPERIMENT_NAME, ARTIFACT_PATH, DATAFOLDER
@@ -19,7 +20,8 @@ from mlflow.tracking import MlflowClient
 
 # Setup Logging
 os.makedirs(ARTIFACT_PATH, exist_ok=True)
-log_file_path = os.path.join(ARTIFACT_PATH, "experiment.log")
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+log_file_path = os.path.join(ARTIFACT_PATH, f"experiment_{timestamp}.log")
 
 logging.basicConfig(
     level=logging.INFO, 
