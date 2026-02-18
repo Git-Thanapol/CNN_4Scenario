@@ -19,7 +19,7 @@ ARTIFACT_PATH = "mlartifacts"
 DATAFOLDER = "~/notebooks/propeller_audio_records/raw_train_data"
 LOW_PASS_CUTOFF = 11000 # Hz
 HIGH_PASS_CUTOFF = 2000 # Hz
-DROPOUT_RATE = 0.6
+DROPOUT_RATE = 0.5
 
 # Augmentation Flags
 AUGMENT_RAW_DATA = True # Apply TimeShift, PitchShift, Noise etc. during data prep

@@ -106,13 +106,11 @@ def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type, augment=
                 # 1.5 Apply Band Pass Filter (Global for all experiments)
                 y = apply_band_pass_filter(y, SAMPLE_RATE, HIGH_PASS_CUTOFF, LOW_PASS_CUTOFF)
                 
-                # 2. Denoising (Based on Experiment)
-                if experiment_type in ['Proposed_1_Denoised_Stationary_LogMel', 'Proposed_4_Mix']:
-                    y = denoise_audio_stationary(y, SAMPLE_RATE)
-                # Note: For 'Proposed_3_Mix', you'd ideally mix raw and denoised here
-                # But for simplicity, let's treat it as a separate augmentation logic if needed
-                if experiment_type in ['Proposed_2_Denoised_Nonstationary_LogMel']:
-                    y = denoise_audio_nonstationary(y, SAMPLE_RATE)
+                # 2. Denoising (Based on Experiment Name Substrings)
+                if 'Stationary' in experiment_type and 'NonStationary' not in experiment_type:
+                     y = denoise_audio_stationary(y, SAMPLE_RATE)
+                elif 'NonStationary' in experiment_type:
+                     y = denoise_audio_nonstationary(y, SAMPLE_RATE)
 
                 # 3. Segmentation (Sliding Window + Padding)
                 segments = segment_audio(y, SAMPLE_RATE, WINDOW_SIZE, STRIDE)

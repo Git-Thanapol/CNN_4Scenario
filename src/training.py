@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE, LEARNING_RATE, AUGMENT_SPECTROGRAM
 from .dataset import AudioDataset
-from .models import SimpleCNN
+from .models import SimpleCNN, CNN_MLP, CNN_Attention, VGG, AST_AFSC_ResCNN
 from .visualization import plot_confusion_matrix, plot_tsne, plot_metrics_separately, plot_roc_curve
 from .augmentation import SpectrogramAugmentor
 
@@ -49,7 +49,9 @@ class EarlyStopping:
 
 def train_and_evaluate(experiment_name: str, 
                        X_train, y_train, X_val, y_val, 
-                       fold_idx: int):
+                       fold_idx: int,
+                       model_arch: str = "SimpleCNN",
+                       extra_args: dict = None):
     
     # Dataset & Loader
     train_transform = None
@@ -79,7 +81,21 @@ def train_and_evaluate(experiment_name: str,
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     
-    model = SimpleCNN(n_classes=len(CLASSES)).to(DEVICE)
+    # Model Selection
+    if model_arch == "SimpleCNN":
+        model = SimpleCNN(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "CNN_MLP":
+        model = CNN_MLP(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "CNN_Attention":
+        model = CNN_Attention(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "VGG":
+        model = VGG(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "AST_AFSC_ResCNN":
+        ast_weights = extra_args.get('ast_weights') if extra_args else None
+        model = AST_AFSC_ResCNN(n_classes=len(CLASSES), ast_weights_path=ast_weights).to(DEVICE)
+    else:
+        raise ValueError(f"Unknown model_arch: {model_arch}")
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
@@ -99,7 +115,7 @@ def train_and_evaluate(experiment_name: str,
             "batch_size": BATCH_SIZE,
             "lr": LEARNING_RATE,
             "optimizer": "Adam",
-            "model": "SimpleCNN",
+            "model": model_arch,
             "patience": PATIENCE,
             "experiment_name": experiment_name
         })

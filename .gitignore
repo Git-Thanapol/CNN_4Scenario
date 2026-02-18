@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# MLflow & Logs
+mlartifacts/
+*.log
+*.csv
+
+# Generated Data & Artifacts
+spectrogram_samples/
+sample_audio/
+
+# Large Model Weights
+*.pth
+*.pt
+*.ckpt
+AST/*.pth
