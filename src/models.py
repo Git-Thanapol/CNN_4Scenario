@@ -1,11 +1,12 @@
 import torch.nn as nn
+from .config import DROPOUT_RATE
 
 class SimpleCNN(nn.Module):
     """
     A lightweight CNN for spectrogram classification.
     Returns features in forward() for t-SNE visualization.
     """
-    def __init__(self, n_classes: int, dropout_rate: float = 0.5):
+    def __init__(self, n_classes: int, dropout_rate: float = DROPOUT_RATE):
         super(SimpleCNN, self).__init__()
         self.conv_layers = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=3, padding=1),

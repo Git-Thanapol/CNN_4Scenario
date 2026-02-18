@@ -3,8 +3,62 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.preprocessing import label_binarize
 from sklearn.manifold import TSNE
+from itertools import cycle
+
+def plot_roc_curve(y_true, y_probs, classes, save_dir=None):
+    """
+    Plots ROC curves for multi-class classification (One-vs-Rest).
+    y_true: True labels (integers or class names)
+    y_probs: Predicted probabilities (n_samples, n_classes)
+    classes: List of class names
+    """
+    # Binarize the labels
+    y_true_bin = label_binarize(y_true, classes=range(len(classes)))
+    n_classes = len(classes)
+    
+    # Compute ROC curve and ROC area for each class
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_true_bin[:, i], y_probs[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+        
+    # Compute micro-average ROC curve and ROC area
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_true_bin.ravel(), y_probs.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+    
+    # Plot ROC curves
+    plt.figure(figsize=(10, 8))
+    plt.plot(fpr["micro"], tpr["micro"],
+             label='micro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["micro"]),
+             color='deeppink', linestyle=':', linewidth=4)
+             
+    colors = cycle(['aqua', 'darkorange', 'cornflowerblue', 'green', 'red', 'purple'])
+    for i, color in zip(range(n_classes), colors):
+        plt.plot(fpr[i], tpr[i], color=color, lw=2,
+                 label='ROC curve of class {0} (area = {1:0.2f})'
+                       ''.format(classes[i], roc_auc[i]))
+                       
+    plt.plot([0, 1], [0, 1], 'k--', lw=2)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC) - Multi-Class')
+    plt.legend(loc="lower right")
+    
+    filename = "roc_curve.png"
+    if save_dir:
+        filename = os.path.join(save_dir, filename)
+    plt.savefig(filename)
+    plt.close()
+    
+    return filename, roc_auc
 
 def plot_confusion_matrix(y_true, y_pred, classes, save_dir=None):
     cm = confusion_matrix(y_true, y_pred)

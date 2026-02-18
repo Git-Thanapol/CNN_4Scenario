@@ -133,7 +133,7 @@ class SpectrogramAugmentor:
 
     def random_masking(self, spec: np.ndarray, 
                        freq_masks: int = 1, time_masks: int = 1,
-                       freq_width: int = 10, time_width: int = 10) -> np.ndarray:
+                       freq_width: int = 20, time_width: int = 20) -> np.ndarray:
         """
         Applies both frequency and time masking.
         """

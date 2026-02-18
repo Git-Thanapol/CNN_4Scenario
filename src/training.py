@@ -8,12 +8,12 @@ import mlflow
 import pandas as pd
 import numpy as np
 from torch.utils.data import DataLoader
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
 from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE, LEARNING_RATE, AUGMENT_SPECTROGRAM
 from .dataset import AudioDataset
 from .models import SimpleCNN
-from .visualization import plot_confusion_matrix, plot_tsne, plot_metrics_separately
+from .visualization import plot_confusion_matrix, plot_tsne, plot_metrics_separately, plot_roc_curve
 from .augmentation import SpectrogramAugmentor
 
 logger = logging.getLogger(__name__)
@@ -100,7 +100,8 @@ def train_and_evaluate(experiment_name: str,
             "lr": LEARNING_RATE,
             "optimizer": "Adam",
             "model": "SimpleCNN",
-            "patience": PATIENCE
+            "patience": PATIENCE,
+            "experiment_name": experiment_name
         })
 
         # Training Loop
@@ -129,6 +130,7 @@ def train_and_evaluate(experiment_name: str,
             model.eval()
             val_loss, val_correct, val_total = 0.0, 0, 0
             all_preds, all_labels = [], []
+            all_probs = [] # Collect for ROC/AUC
             all_features = [] # For t-SNE
             
             start_time = time.time() # Measure inference time
@@ -143,8 +145,13 @@ def train_and_evaluate(experiment_name: str,
                     val_total += labels.size(0)
                     val_correct += (predicted == labels).sum().item()
                     
+                    
+                    # Get probabilities (softmax)
+                    probs = torch.softmax(outputs, dim=1)
+                    
                     all_preds.extend(predicted.cpu().numpy())
                     all_labels.extend(labels.cpu().numpy())
+                    all_probs.extend(probs.cpu().numpy())
                     all_features.extend(features.cpu().numpy())
             
             inference_time = (time.time() - start_time) / val_total
@@ -260,6 +267,23 @@ def train_and_evaluate(experiment_name: str,
         
         tsne_path = plot_tsne(np.array(all_features), np.array(all_labels), CLASSES, save_dir=ARTIFACT_PATH)
         mlflow.log_artifact(tsne_path)
+        
+        # Calculate AUC and Plot ROC
+        # Multi-class AUC (One-vs-Rest)
+        try:
+            roc_auc = roc_auc_score(all_labels, all_probs, multi_class='ovr', average='macro')
+            summary_metrics['roc_auc'] = roc_auc
+            
+            roc_path, auc_dict = plot_roc_curve(all_labels, np.array(all_probs), CLASSES, save_dir=ARTIFACT_PATH)
+            mlflow.log_artifact(roc_path)
+            
+            # Log AUC per class if needed, or just the macro average
+            for i, class_name in enumerate(CLASSES):
+                if i in auc_dict:
+                    summary_metrics[f'auc_{class_name}'] = auc_dict[i]
+                    
+        except Exception as e:
+            logger.error(f"Failed to calculate ROC/AUC: {e}")
         
         # Log Final Summary Metrics to MLflow as well
         mlflow.log_metrics(summary_metrics)
