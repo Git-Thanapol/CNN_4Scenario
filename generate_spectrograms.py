@@ -8,7 +8,7 @@ from src.audio_processing import load_audio, apply_band_pass_filter, denoise_aud
 from src.config import SAMPLE_RATE, LOW_PASS_CUTOFF, HIGH_PASS_CUTOFF
 
 # File Path
-file_path = r"sample_audio\healthy_1800_121_raw.wav"
+file_path = r"sample_audio\HEALTHY_PWM1200_Iter5.wav"
 output_dir = r"spectrogram_samples"
 os.makedirs(output_dir, exist_ok=True)
 

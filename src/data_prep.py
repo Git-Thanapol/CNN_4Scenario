@@ -108,7 +108,7 @@ def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type, augment=
                 
                 # 2. Denoising (Based on Experiment Name Substrings)
                 if 'Stationary' in experiment_type and 'NonStationary' not in experiment_type:
-                     y = denoise_audio_stationary(y, SAMPLE_RATE)
+                     y = denoise_audio_stationary(y, SAMPLE_RATE, use_noise_profile=True)
                 elif 'NonStationary' in experiment_type:
                      y = denoise_audio_nonstationary(y, SAMPLE_RATE)
 
