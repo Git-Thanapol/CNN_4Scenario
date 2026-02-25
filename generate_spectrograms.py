@@ -49,7 +49,7 @@ def run():
     
     # --- Experiment 2: Stationary Denoising ---
     # Bandpass -> Stationary Denoise -> LogMel
-    y_stat = denoise_audio_stationary(y_bandpass, SAMPLE_RATE)
+    y_stat = denoise_audio_stationary(y_bandpass, SAMPLE_RATE, use_noise_profile=True)
     spec_stat = compute_spectrogram(y_stat, SAMPLE_RATE, method='logmel')
     save_spectrogram(spec_stat, SAMPLE_RATE, "Stationary Denoising LogMel", "spec_stationary.png")
     

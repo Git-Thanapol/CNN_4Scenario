@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 from .config import BATCH_SIZE, EPOCHS, CLASSES, DEVICE, ARTIFACT_PATH, PATIENCE, LEARNING_RATE, AUGMENT_SPECTROGRAM
 from .dataset import AudioDataset
-from .models import SimpleCNN, CNN_MLP, CNN_Attention, VGG, AST_AFSC_ResCNN
+from .models import SimpleCNN, CNN_MLP, CNN_Attention, VGG, AST_AFSC_ResCNN, ResNet50, MobileNetV3, EfficientNetV2, DenseNet, AlexNet
 from .visualization import plot_confusion_matrix, plot_tsne, plot_metrics_separately, plot_roc_curve
 from .augmentation import SpectrogramAugmentor
 
@@ -93,6 +93,16 @@ def train_and_evaluate(experiment_name: str,
     elif model_arch == "AST_AFSC_ResCNN":
         ast_weights = extra_args.get('ast_weights') if extra_args else None
         model = AST_AFSC_ResCNN(n_classes=len(CLASSES), ast_weights_path=ast_weights).to(DEVICE)
+    elif model_arch == "ResNet50":
+        model = ResNet50(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "MobileNetV3":
+        model = MobileNetV3(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "EfficientNetV2":
+        model = EfficientNetV2(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "DenseNet":
+        model = DenseNet(n_classes=len(CLASSES)).to(DEVICE)
+    elif model_arch == "AlexNet":
+        model = AlexNet(n_classes=len(CLASSES)).to(DEVICE)
     else:
         raise ValueError(f"Unknown model_arch: {model_arch}")
 

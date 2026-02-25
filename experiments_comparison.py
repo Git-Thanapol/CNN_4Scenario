@@ -52,7 +52,18 @@ EXPERIMENTS_LIST = [
 
     # AST
     #{"name": "AST_AFSC_ResCNN", "model": "AST_AFSC_ResCNN", "process": "Bandpass_LogMel", 
-    #"extra_args": {"ast_weights": r"C:\Users\Thana\dev\cnn_comparison\AST\audioset_10_10_0.4593 (1).pth"}}
+    #"extra_args": {"ast_weights": r"C:\Users\Thana\dev\cnn_comparison\AST\audioset_10_10_0.4593 (1).pth"}},
+    
+    # ResNet-50
+    {"name": "ResNet50_Stationary", "model": "ResNet50", "process": "Stationary"},
+    # MobileNetV3
+    {"name": "MobileNetV3_Stationary", "model": "MobileNetV3", "process": "Stationary"},
+    # EfficientNetV2
+    {"name": "EfficientNetV2_Stationary", "model": "EfficientNetV2", "process": "Stationary"},
+    # DenseNet
+    {"name": "DenseNet_Stationary", "model": "DenseNet", "process": "Stationary"},
+    # AlexNet
+    {"name": "AlexNet_Stationary", "model": "AlexNet", "process": "Stationary"},
 ]
 
 # Override the global experiment name for this suite

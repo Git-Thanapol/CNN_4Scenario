@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import os
+import torchvision.models as models
 from .config import DROPOUT_RATE, DEVICE
 try:
     from .ast_models import ASTModel
@@ -278,4 +279,156 @@ class AST_AFSC_ResCNN(nn.Module):
         afsc_out = self.afsc(ast_features) # (B, 64, 12, 101)
         
         out, features = self.rescnn(afsc_out)
+        return out, features
+
+class ResNet50(nn.Module):
+    """
+    ResNet-50 adapted for 1-channel spectrograms.
+    """
+    def __init__(self, n_classes: int, dropout_rate: float = DROPOUT_RATE):
+        super(ResNet50, self).__init__()
+        self.model = models.resnet50(weights=None)
+        
+        # Modify first conv layer to accept 1 channel instead of 3
+        # Original: Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        
+        # Modify the final classification layer
+        num_ftrs = self.model.fc.in_features
+        self.model.fc = nn.Sequential(
+            nn.Dropout(dropout_rate),
+            nn.Linear(num_ftrs, n_classes)
+        )
+
+    def forward(self, x):
+        x = self.model.conv1(x)
+        x = self.model.bn1(x)
+        x = self.model.relu(x)
+        x = self.model.maxpool(x)
+
+        x = self.model.layer1(x)
+        x = self.model.layer2(x)
+        x = self.model.layer3(x)
+        x = self.model.layer4(x)
+
+        x = self.model.avgpool(x)
+        features = torch.flatten(x, 1)
+        out = self.model.fc(features)
+        
+        return out, features
+
+class MobileNetV3(nn.Module):
+    """
+    MobileNetV3 (Large) adapted for 1-channel spectrograms.
+    """
+    def __init__(self, n_classes: int, dropout_rate: float = DROPOUT_RATE):
+        super(MobileNetV3, self).__init__()
+        self.model = models.mobilenet_v3_large(weights=None)
+        
+        # Modify the first layer to accept 1 channel
+        # It's a Conv2dNormActivation module, the Conv2d is at index 0
+        original_conv = self.model.features[0][0]
+        self.model.features[0][0] = nn.Conv2d(
+            1, original_conv.out_channels, 
+            kernel_size=original_conv.kernel_size, 
+            stride=original_conv.stride, 
+            padding=original_conv.padding, 
+            bias=False
+        )
+        
+        # Modify the classifier
+        num_ftrs = self.model.classifier[3].in_features
+        self.model.classifier[3] = nn.Linear(num_ftrs, n_classes)
+        # Assuming you want to add the required dropout from your codebase:
+        self.model.classifier[2] = nn.Dropout(p=dropout_rate, inplace=True)
+
+    def forward(self, x):
+        x = self.model.features(x)
+        x = self.model.avgpool(x)
+        features = torch.flatten(x, 1)
+        out = self.model.classifier(features)
+        return out, features
+
+class EfficientNetV2(nn.Module):
+    """
+    EfficientNetV2 (Small) adapted for 1-channel spectrograms.
+    """
+    def __init__(self, n_classes: int, dropout_rate: float = DROPOUT_RATE):
+        super(EfficientNetV2, self).__init__()
+        self.model = models.efficientnet_v2_s(weights=None)
+        
+        # Modify first layer for 1-channel input
+        original_conv = self.model.features[0][0]
+        self.model.features[0][0] = nn.Conv2d(
+            1, original_conv.out_channels, 
+            kernel_size=original_conv.kernel_size, 
+            stride=original_conv.stride, 
+            padding=original_conv.padding, 
+            bias=False
+        )
+        
+        # Modify final classifier layer
+        num_ftrs = self.model.classifier[1].in_features
+        self.model.classifier = nn.Sequential(
+            nn.Dropout(p=dropout_rate, inplace=True),
+            nn.Linear(num_ftrs, n_classes)
+        )
+
+    def forward(self, x):
+        x = self.model.features(x)
+        x = self.model.avgpool(x)
+        features = torch.flatten(x, 1)
+        out = self.model.classifier(features)
+        return out, features
+
+class DenseNet(nn.Module):
+    """
+    DenseNet-121 adapted for 1-channel spectrograms.
+    """
+    def __init__(self, n_classes: int, dropout_rate: float = DROPOUT_RATE):
+        super(DenseNet, self).__init__()
+        self.model = models.densenet121(weights=None)
+        
+        # Modify first conv layer to accept 1 channel
+        self.model.features.conv0 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        
+        # Modify classifier
+        num_ftrs = self.model.classifier.in_features
+        self.model.classifier = nn.Sequential(
+            nn.Dropout(dropout_rate),
+            nn.Linear(num_ftrs, n_classes)
+        )
+
+    def forward(self, x):
+        features_out = self.model.features(x)
+        out_relu = torch.nn.functional.relu(features_out, inplace=True)
+        out_avg = torch.nn.functional.adaptive_avg_pool2d(out_relu, (1, 1))
+        features = torch.flatten(out_avg, 1)
+        out = self.model.classifier(features)
+        return out, features
+
+class AlexNet(nn.Module):
+    """
+    AlexNet adapted for 1-channel spectrograms.
+    """
+    def __init__(self, n_classes: int, dropout_rate: float = DROPOUT_RATE):
+        super(AlexNet, self).__init__()
+        self.model = models.alexnet(weights=None)
+        
+        # Modify first conv layer to accept 1 channel
+        self.model.features[0] = nn.Conv2d(1, 64, kernel_size=11, stride=4, padding=2)
+        
+        # Modify classifier
+        num_ftrs = self.model.classifier[6].in_features
+        self.model.classifier[6] = nn.Linear(num_ftrs, n_classes)
+        
+        # Update dropouts in the classifier
+        self.model.classifier[2].p = dropout_rate
+        self.model.classifier[5].p = dropout_rate
+
+    def forward(self, x):
+        x = self.model.features(x)
+        x = self.model.avgpool(x)
+        features = torch.flatten(x, 1)
+        out = self.model.classifier(features)
         return out, features
