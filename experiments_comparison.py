@@ -37,17 +37,17 @@ EXPERIMENTS_LIST = [
     {"name": "CNN_Simple_Stationary", "model": "SimpleCNN", "process": "Stationary"},
     # CNN + MLP
     #{"name": "CNN_MLP_PCEN", "model": "CNN_MLP", "process": "PCEN"},
-    {"name": "CNN_MLP_Stationary", "model": "CNN_MLP", "process": "Stationary"},
+    #{"name": "CNN_MLP_Stationary", "model": "CNN_MLP", "process": "Stationary"},
     #{"name": "CNN_MLP_NonStationary", "model": "CNN_MLP", "process": "NonStationary"},
 
     # CNN + Attention
     #{"name": "CNN_Attention_PCEN", "model": "CNN_Attention", "process": "PCEN"},
-    {"name": "CNN_Attention_Stationary", "model": "CNN_Attention", "process": "Stationary"},
+    #{"name": "CNN_Attention_Stationary", "model": "CNN_Attention", "process": "Stationary"},
     #{"name": "CNN_Attention_NonStationary", "model": "CNN_Attention", "process": "NonStationary"},
     
     # VGG
     #{"name": "VGG_PCEN", "model": "VGG", "process": "PCEN"},
-    {"name": "VGG_Stationary", "model": "VGG", "process": "Stationary"},
+    #{"name": "VGG_Stationary", "model": "VGG", "process": "Stationary"},
     #{"name": "VGG_NonStationary", "model": "VGG", "process": "NonStationary"},
 
     # AST
