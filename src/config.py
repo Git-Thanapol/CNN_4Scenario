@@ -14,12 +14,13 @@ N_FOLDS = 5
 CLASSES = ['healthy', 'imbalance', 'fouling', 'seaweed']
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 TRACKING_URI = "http://localhost:5000" # Prod
-EXPERIMENT_NAME = "Model_Comparison_Study_Stationary_Tank_Test"
+EXPERIMENT_NAME = "Model_Comparison_Study_Stationary_2026_June_17"
 ARTIFACT_PATH = "mlartifacts"
 #DATAFOLDER = "~/notebooks/propeller_audio_records/raw_train_data"
-DATAFOLDER = "~/notebooks/propeller_audio_records/tank_test_data"#
+DATAFOLDER = "~/notebooks/202606_Experiments/Dataset/TrainingData_202606"#
 LOW_PASS_CUTOFF = 11000 # Hz
-NOISE_PROFILE_PATH = "sample_audio/TANK_SOUND_PWM1500_Iter5.wav"  # Reference noise profile for stationary denoising
+NOISE_PROFILE_PATH = "~/notebooks/202606_Experiments/NoiseProfile/Audio_Healthy_1500_20251211_113603.wav"  # Reference noise profile for stationary denoising
+NOISE_PROFILE_FOR_FOULING = "~/notebooks/202606_Experiments/NoiseProfile/TRIM_TANK_SOUND_PWM1500_Iter7.wav"  # Reference noise profile for stationary denoising
 HIGH_PASS_CUTOFF = 2000 # Hz
 DROPOUT_RATE = 0.5
 

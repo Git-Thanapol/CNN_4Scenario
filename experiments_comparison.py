@@ -35,24 +35,26 @@ EXPERIMENTS_LIST = [
 
     #CNN Simple
     {"name": "CNN_Simple_Stationary", "model": "SimpleCNN", "process": "Stationary"},
+    # {"name": "CNN_Simple_Stationary", "model": "SimpleCNN", "process": "NonStationary"},
+    
     # CNN + MLP
-    #{"name": "CNN_MLP_PCEN", "model": "CNN_MLP", "process": "PCEN"},
-    #{"name": "CNN_MLP_Stationary", "model": "CNN_MLP", "process": "Stationary"},
-    #{"name": "CNN_MLP_NonStationary", "model": "CNN_MLP", "process": "NonStationary"},
+    # {"name": "CNN_MLP_PCEN", "model": "CNN_MLP", "process": "PCEN"},
+    {"name": "CNN_MLP_Stationary", "model": "CNN_MLP", "process": "Stationary"},
+    # {"name": "CNN_MLP_NonStationary", "model": "CNN_MLP", "process": "NonStationary"},
 
     # CNN + Attention
-    #{"name": "CNN_Attention_PCEN", "model": "CNN_Attention", "process": "PCEN"},
-    #{"name": "CNN_Attention_Stationary", "model": "CNN_Attention", "process": "Stationary"},
-    #{"name": "CNN_Attention_NonStationary", "model": "CNN_Attention", "process": "NonStationary"},
+    # {"name": "CNN_Attention_PCEN", "model": "CNN_Attention", "process": "PCEN"},
+    {"name": "CNN_Attention_Stationary", "model": "CNN_Attention", "process": "Stationary"},
+    # {"name": "CNN_Attention_NonStationary", "model": "CNN_Attention", "process": "NonStationary"},
     
     # VGG
-    #{"name": "VGG_PCEN", "model": "VGG", "process": "PCEN"},
-    #{"name": "VGG_Stationary", "model": "VGG", "process": "Stationary"},
-    #{"name": "VGG_NonStationary", "model": "VGG", "process": "NonStationary"},
+    # {"name": "VGG_PCEN", "model": "VGG", "process": "PCEN"},
+    {"name": "VGG_Stationary", "model": "VGG", "process": "Stationary"},
+    # {"name": "VGG_NonStationary", "model": "VGG", "process": "NonStationary"},
 
     # AST
-    #{"name": "AST_AFSC_ResCNN", "model": "AST_AFSC_ResCNN", "process": "Bandpass_LogMel", 
-    #"extra_args": {"ast_weights": r"C:\Users\Thana\dev\cnn_comparison\AST\audioset_10_10_0.4593 (1).pth"}},
+    # {"name": "AST_AFSC_ResCNN", "model": "AST_AFSC_ResCNN", "process": "Bandpass_LogMel", 
+    # "extra_args": {"ast_weights": r"C:\Users\Thana\dev\cnn_comparison\AST\audioset_10_10_0.4593 (1).pth"}},
     
     # ResNet-50
     {"name": "ResNet50_Stationary", "model": "ResNet50", "process": "Stationary"},
@@ -67,7 +69,7 @@ EXPERIMENTS_LIST = [
 ]
 
 # Override the global experiment name for this suite
-COMPARISON_EXPERIMENT_NAME = "Stationary_Tank_Test_NoiseProfile"
+COMPARISON_EXPERIMENT_NAME = "Stationary_Tank_Test_NoiseProfile_2026-06-16"
 
 def run_comparison():
     try:

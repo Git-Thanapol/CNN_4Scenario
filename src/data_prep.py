@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import logging
-from .config import SAMPLE_RATE, WINDOW_SIZE, STRIDE, CLASSES, LOW_PASS_CUTOFF, HIGH_PASS_CUTOFF, AUGMENT_RAW_DATA
+from .config import SAMPLE_RATE, WINDOW_SIZE, STRIDE, CLASSES, LOW_PASS_CUTOFF, HIGH_PASS_CUTOFF, AUGMENT_RAW_DATA, NOISE_PROFILE_PATH, NOISE_PROFILE_FOR_FOULING
 from .audio_processing import load_audio, denoise_audio_stationary, denoise_audio_nonstationary , segment_audio, compute_spectrogram, apply_low_pass_filter, apply_band_pass_filter
 from .augmentation import RawAudioAugmentor
 import random
@@ -108,7 +108,8 @@ def prepare_data_for_fold(df_meta, train_idx, val_idx, experiment_type, augment=
                 
                 # 2. Denoising (Based on Experiment Name Substrings)
                 if 'Stationary' in experiment_type and 'NonStationary' not in experiment_type:
-                     y = denoise_audio_stationary(y, SAMPLE_RATE, use_noise_profile=True)
+                    profile = NOISE_PROFILE_FOR_FOULING if label == 'fouling' else NOISE_PROFILE_PATH
+                    y = denoise_audio_stationary(y, SAMPLE_RATE, use_noise_profile=True, noise_profile_path=profile)
                 elif 'NonStationary' in experiment_type:
                      y = denoise_audio_nonstationary(y, SAMPLE_RATE)
 

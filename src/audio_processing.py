@@ -5,7 +5,7 @@ from typing import List, Optional
 import noisereduce as nr
 import scipy.signal
 from scipy.signal import butter, lfilter
-from .config import SAMPLE_RATE, DURATION, WINDOW_SIZE, STRIDE, N_MELS, HOP_LENGTH, NOISE_PROFILE_PATH
+from .config import SAMPLE_RATE, DURATION, WINDOW_SIZE, STRIDE, N_MELS, HOP_LENGTH, NOISE_PROFILE_PATH, NOISE_PROFILE_FOR_FOULING
 
 def apply_band_pass_filter(y: np.ndarray, sr: int, low_cutoff: int, high_cutoff: int) -> np.ndarray:
     """Applies a band-pass ButterWorth filter."""
@@ -45,19 +45,18 @@ def denoise_audio_nonstationary(y: np.ndarray, sr: int) -> np.ndarray:
     """Applies noise reduction (Placeholder for noisereduce library)."""
     return nr.reduce_noise(y=y, sr=sr , stationary=False)
 
-def denoise_audio_stationary(y: np.ndarray, sr: int, use_noise_profile: bool = False) -> np.ndarray:
+def denoise_audio_stationary(y: np.ndarray, sr: int, use_noise_profile: bool = False, noise_profile_path: str = None) -> np.ndarray:
     """Applies stationary noise reduction.
-    
+
     Args:
         y: Input audio signal.
         sr: Sample rate.
-        use_noise_profile: If True, uses the reference noise recording
-            (TANK_SOUND_PWM1500_Iter5.wav) as a noise profile for more
-            accurate noise estimation. If False, noisereduce estimates
-            the noise from the signal itself.
+        use_noise_profile: If True, uses a reference noise recording for noise estimation.
+        noise_profile_path: Path to noise profile WAV. Defaults to NOISE_PROFILE_PATH.
     """
     if use_noise_profile:
-        noise_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), NOISE_PROFILE_PATH)
+        profile = noise_profile_path if noise_profile_path is not None else NOISE_PROFILE_PATH
+        noise_path = os.path.expanduser(profile)
         y_noise, _ = librosa.load(noise_path, sr=sr)
         return nr.reduce_noise(y=y, sr=sr, y_noise=y_noise, stationary=True)
     else:
