@@ -19,8 +19,8 @@ ARTIFACT_PATH = "mlartifacts"
 #DATAFOLDER = "~/notebooks/propeller_audio_records/raw_train_data"
 DATAFOLDER = "~/notebooks/202606_Experiments/Dataset/TrainingData_202606"#
 LOW_PASS_CUTOFF = 11000 # Hz
-NOISE_PROFILE_PATH = "~/notebooks/202606_Experiments/NoiseProfile/Audio_Healthy_1500_20251211_113603.wav"  # Reference noise profile for stationary denoising
-NOISE_PROFILE_FOR_FOULING = "~/notebooks/202606_Experiments/NoiseProfile/TRIM_TANK_SOUND_PWM1500_Iter7.wav"  # Reference noise profile for stationary denoising
+NOISE_PROFILE_PATH = "~/notebooks/202606_Experiments/Dataset/NoiseProfile/Audio_Healthy_1500_20251211_113603.wav"  # Reference noise profile for stationary denoising
+NOISE_PROFILE_FOR_FOULING = "~/notebooks/202606_Experiments/Dataset/NoiseProfile/TRIM_TANK_SOUND_PWM1500_Iter7.wav"  # Reference noise profile for stationary denoising
 HIGH_PASS_CUTOFF = 2000 # Hz
 DROPOUT_RATE = 0.5
 

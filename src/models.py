@@ -414,19 +414,21 @@ class AlexNet(nn.Module):
     def __init__(self, n_classes: int, dropout_rate: float = DROPOUT_RATE):
         super(AlexNet, self).__init__()
         self.model = models.alexnet(weights=None)
-        
+
         # Modify first conv layer to accept 1 channel
         self.model.features[0] = nn.Conv2d(1, 64, kernel_size=11, stride=4, padding=2)
-        
+
         # Modify classifier
         num_ftrs = self.model.classifier[6].in_features
         self.model.classifier[6] = nn.Linear(num_ftrs, n_classes)
-        
+
         # Update dropouts in the classifier
         self.model.classifier[2].p = dropout_rate
         self.model.classifier[5].p = dropout_rate
 
     def forward(self, x):
+        # AlexNet requires at least 128x128 input due to aggressive pooling (3x MaxPool 3x3 stride=2 + Conv 11x11 stride=4)
+        x = torch.nn.functional.interpolate(x, size=(128, 128), mode='bilinear', align_corners=False)
         x = self.model.features(x)
         x = self.model.avgpool(x)
         features = torch.flatten(x, 1)
